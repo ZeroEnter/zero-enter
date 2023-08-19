@@ -10,8 +10,7 @@ ZeroEnter offers a groundbreaking solution, seamlessly merging local machine lea
 - [Key Features](#key-features)
 - [Benefits](#benefits)
 - [Target Audience](#target-audience)
-- [Conclusion](#conclusion)
-- [Contributing](#contributing)
+
 
 ---
 
@@ -59,16 +58,5 @@ Enable local execution of machine learning models while employing the Ripple blo
 
 ---
 
-## Conclusion
-
-Exclusively conceptualized for the Ripple blockchain network, ZeroEnter is setting novel standards in blockchain and data processing. Embedding avant-garde capabilities within the Rippled hooks source code while underscoring local ML executions, it symbolizes a new dawn of data security, privacy, and global validation.
-
----
-
-## Contributing
-
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. Please ensure to update tests as appropriate.
-
----
 
 ![Logo](logo.png)
