@@ -59,4 +59,4 @@ Enable local execution of machine learning models while employing the Ripple blo
 ---
 
 
-![Logo](logo.png)
+![Logo](images/logo.png)
