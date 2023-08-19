@@ -1,7 +1,5 @@
 # Zero Enter
 
-![<img src="logi" width="250"/>](logo.png)
-
 ZeroEnter offers a groundbreaking solution, seamlessly merging local machine learning execution with blockchain verification. Exclusively tailored for the Ripple blockchain network, it showcases a profound integration with the Rippled hooks source code, ensuring both local data protection and global trust.
 
 ---
@@ -72,3 +70,5 @@ Exclusively conceptualized for the Ripple blockchain network, ZeroEnter is setti
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. Please ensure to update tests as appropriate.
 
 ---
+
+![Logo](logo.png)
