@@ -1,11 +1,10 @@
 import click
-
 # Define the network client
 from xrpl.clients import JsonRpcClient
 from xrpl.models import Payment
 from xrpl.transaction import submit_and_wait
 from xrpl.utils import xrp_to_drops
-from xrpl.wallet import generate_faucet_wallet, Wallet
+from xrpl.wallet import Wallet
 
 from pyze.memo import generate_verification_memos
 
