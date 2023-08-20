@@ -8,7 +8,7 @@ from xrpl.wallet import Wallet
 
 from pyze.memo import generate_verification_memos
 
-JSON_RPC_URL =  "http://127.0.0.1:5005"
+JSON_RPC_URL = "http://127.0.0.1:15005"
 client = JsonRpcClient(JSON_RPC_URL)
 
 

@@ -1,0 +1,259 @@
+<html>
+
+<head>
+    <script src="https://unpkg.com/xrpl@2.3.0/build/xrpl-latest-min.js"></script>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type" />
+     <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .column {
+            flex: 1;
+            margin: 5px;
+            padding: 20px;
+            border: 1px solid #E0E0E0;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+            font-size: 24px;
+        }
+
+        h2 {
+            color: #555;
+            font-size: 20px;
+            margin-top: 20px;
+        }
+
+        label, input, button {
+            display: block;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #333;
+            color: #FFF;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .results {
+            padding: 10px;
+            border: 1px solid #E0E0E0;
+            border-radius: 4px;
+        }
+
+        .flex-row {
+            display: flex;
+            align-items: center;
+        }
+        .section {
+            margin-right: 20px;
+        }
+
+    </style>
+</head>
+
+<body>
+    <script type="module">
+        // Importing the necessary functions from the WASM module
+        import init, { prove, verify } from './pkg/ezkl.js';
+
+        async function run() {
+            try {
+                // Initialize the WASM module
+                await init();
+
+                // Function to read an uploaded file and return its content as a Uint8ClampedArray
+                function readUploadedFileAsText(inputFileElement) {
+                    return new Promise((resolve, reject) => {
+                        console.log(inputFileElement)
+                        const file = inputFileElement.files[0];
+                        const reader = new FileReader();
+
+                        reader.onload = event => {
+                            const arrayBuffer = event.target.result;
+
+                        console.log(arrayBuffer)
+                            resolve(new Uint8ClampedArray(arrayBuffer));
+                        };
+
+                        reader.onerror = error => {
+                            reject(new Error('File could not be read: ' + error));
+                        };
+
+                        reader.readAsArrayBuffer(file);
+                    });
+                }
+
+                // Adding an event listener to the proveButton
+                document.getElementById("proveButton").addEventListener("click", async () => {
+                    try {
+                        // Reading the content of the input files
+                        const data = await readUploadedFileAsText(document.getElementById("data_prove"));
+                        const pk = await readUploadedFileAsText(document.getElementById("pk_prove"));
+                        const circuit_ser = await readUploadedFileAsText(document.getElementById("circuit_ser_prove"));
+                        const circuit_params_ser = await readUploadedFileAsText(document.getElementById("circuit_params_ser_prove"));
+                        const params_ser = await readUploadedFileAsText(document.getElementById("params_ser_prove"));
+
+                        // Using the WASM function to get a result
+                        const result = await prove(data, pk, circuit_ser, circuit_params_ser, params_ser);
+
+                        document.getElementById("proveResult").innerText = result ? 'Proof OK' : 'Proof failed';
+
+                        // Creating a blob and a URL for it from the result
+                        const blob = new Blob([result.buffer], { type: 'application/octet-stream' });
+                        const url = URL.createObjectURL(blob);
+
+                        // Creating a hidden anchor element, adding it to the document,
+                        // clicking it to download the file and then removing the element
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = 'network.proof';
+                        a.style.display = 'none';
+                        document.body.appendChild(a);
+                        a.click();
+                        setTimeout(() => {
+                            URL.revokeObjectURL(url);
+                            document.body.removeChild(a);
+                        }, 0);
+                    } catch (error) {
+                        console.error("An error occurred during proving:", error);
+                    }
+                });
+
+                // Adding an event listener to the verifyButton
+                document.getElementById("verifyButton").addEventListener("click", async () => {
+                    try {
+                        // Reading the content of the input files
+                        const proof_js = await readUploadedFileAsText(document.getElementById("proof_js"));
+                        const vk = await readUploadedFileAsText(document.getElementById("vk"));
+                        const circuit_params_ser = await readUploadedFileAsText(document.getElementById("circuit_params_ser_verify"));
+                        const params_ser = await readUploadedFileAsText(document.getElementById("params_ser_verify"));
+
+                        // Using the WASM function to get a result
+                        const result = await verify(proof_js, vk, circuit_params_ser, params_ser);
+
+                        // Displaying the result
+                        document.getElementById("verifyResult").innerText = result ? 'True' : 'False';
+                    } catch (error) {
+                        console.error("An error occurred during verification:", error);
+                    }
+                });
+            } catch (error) {
+                console.error("An error occurred:", error);
+            }
+        }
+
+        // Running the main function
+        run();
+    </script>
+    <!--HTML forms for the proving and verifying functionality-->
+
+  <!-- Ripple Seed Section -->
+     <div class="flex-row">
+        <!-- Ripple Seed Section -->
+        <div class="section">
+            <h1>Ripple Seed</h1>
+            <label for="rippleSeed">Enter Seed:</label>
+            <input id="rippleSeed" type="text" placeholder="Enter your Ripple seed here..." />
+            <button id="seedAction">Process Seed</button>
+        </div>
+
+        <!-- Account Info Section -->
+        <div class="section">
+            <h1>Account Info</h1>
+            <div id="accountInfo">Enter a seed and click "Process Seed" to view account details.</div>
+        </div>
+    </div>
+
+
+    <div class="container">
+        <!-- Prove Section (Left Column) -->
+        <div class="column">
+            <h1>Prove</h1>
+            <label for="data_prove">Input Data:</label>
+            <input id="data_prove" type="file" placeholder="data_prove" />
+            <label for="pk_prove">Proving key:</label>
+            <input id="pk_prove" type="file" placeholder="pk_prove" />
+            <label for="circuit_ser_prove">Circuit (.onnx):</label>
+            <input id="circuit_ser_prove" type="file" placeholder="circuit_ser" />
+            <label for="circuit_params_ser_prove">Circuit params:</label>
+            <input id="circuit_params_ser_prove" type="file" placeholder="circuit_params_ser_prove" />
+            <label for="params_ser_prove">KZG params:</label>
+            <input id="params_ser_prove" type="file" placeholder="params_ser_prove" />
+            <!-- ... other input fields ... -->
+            <button id="proveButton">Prove</button>
+            <h2>Result:</h2>
+            <div id="proveResult" class="results"></div>
+        </div>
+
+        <!-- Verify Section (Right Column) -->
+        <div class="column">
+            <h1>Verify</h1>
+             <label for="proof_js">Proof (network.proof):</label>
+            <input id="proof_js" type="file" placeholder="proof_js" />
+            <label for="vk">Verifying key:</label>
+            <input id="vk" type="file" placeholder="vk" />
+            <label for="circuit_params_ser_verify">Circuit params:</label>
+            <input id="circuit_params_ser_verify" type="file" placeholder="circuit_params_ser_verify" />
+            <label for="params_ser_verify">KZG params:</label>
+            <input id="params_ser_verify" type="file" placeholder="params_ser_verify" />
+            <!-- ... other input fields ... -->
+            <button id="verifyButton">Verify</button>
+            <h2>Result:</h2>
+            <div id="verifyResult" class="results"></div>
+        </div>
+    </div>
+
+ <script>
+
+        async function fetchAccountInfo(seed) {
+            // Create an XRPL client pointing to the testnet
+            const client = new xrpl.Client('wss://hooks-testnet-v3.xrpl-labs.com');
+            await client.connect();
+
+            try {
+                // Get account info using the provided seed
+                // NOTE: You might need to derive the actual address from the seed
+                const response = await client.getAccountInfo(seed);
+                const response = await client.request({
+                    command: "account_info",
+                    account: "rPT1Sjq2YGrBMTttX4GZHjKu9dyfzbpAYe",
+                    ledger_index: "validated",
+                  });
+
+
+                document.getElementById('accountInfo').innerHTML = `
+                    Account: ${response.account}<br>
+                    Balance: ${response.balance}<br>
+                    Flags: ${response.flags}<br>
+                    Sequence: ${response.sequence}
+                `;
+            } catch (error) {
+                document.getElementById('accountInfo').innerText = "An error occurred while fetching account info.";
+                console.error(error);
+            } finally {
+                await client.disconnect();
+            }
+        }
+
+        document.getElementById('seedAction').addEventListener('click', () => {
+            const seed = document.getElementById('rippleSeed').value;
+            fetchAccountInfo(seed);
+        });
+    </script>
+
+</body>
