@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@transia/xrpl": "^2.7.3-alpha.9"
+  }
+}

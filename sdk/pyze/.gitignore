@@ -1,1 +1,3 @@
 venv
+/examples/ui/node_modules/
+/build/
