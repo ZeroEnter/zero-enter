@@ -59,6 +59,7 @@
             autoResize(this);
         });
 
+
         function appendLog(...args) {
             const logsElement = document.getElementById('logs');
             const formattedArgs = args.map(arg => {
@@ -148,6 +149,43 @@
             if (xrpl.isValidAddress(destinationAddress)) {
                 document.getElementById('isvalid_destination_address').innerText = 'Valid address';
                 document.getElementById('isvalid_destination_address').style.color = 'green';
+
+                const file = document.getElementById('inputData').files[0];
+
+                if (file) {
+                    const reader = new FileReader();
+
+                    reader.onload = async function(e) {
+                        const fileData = e.target.result.split(',')[1]; // Extracting the Base64 encoded string.
+
+                        const jsonData = {
+                            fileContent: fileData
+                        };
+
+                        // Send this JSON data to the additional address
+                        // Assuming you will use the Fetch API and the endpoint is "https://your-endpoint.com/upload"
+                        try {
+                            const response = await fetch("https://your-endpoint.com/upload", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify(jsonData)
+                            });
+
+                            const data = await response.json();
+                            appendLog("File data sent successfully:", data);
+                        } catch (error) {
+                            appendLog("Error sending file data:", error);
+                        }
+                    };
+
+                    reader.onerror = function(error) {
+                        appendLog("Error reading file:", error);
+                    };
+
+                    reader.readAsDataURL(file);
+                }
 
                 const tx = await client.autofill({
                     TransactionType: 'Payment',
