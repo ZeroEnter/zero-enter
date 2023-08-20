@@ -1,3 +1,0 @@
-[submodule "sdk/pyze/examples/zero-enter-antifraud"]
-	path = sdk/pyze/examples/zero-enter-antifraud
-	url = git@github.com:ZeroEnter/zero-enter-antifraud.git
