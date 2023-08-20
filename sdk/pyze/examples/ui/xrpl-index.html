@@ -7,7 +7,7 @@
     <title>Simple XRPL Wallet</title>
     <link rel="preload" href="index.css" as="style">
     <link rel="stylesheet" href="index.css">
-    <script src="https://unpkg.com/xrpl@2.3.0/build/xrpl-latest-min.js"></script>
+    <script src="node_modules/@transia/xrpl/build/xrpl-latest-min.js"></script>
   </head>
   <body>
     <div id="app">
@@ -17,21 +17,25 @@
           <button class="send_xrp" id="send_xrp_button">Send XRP</button>
           <button class="transaction_history" id="transaction_history_button">Transaction History</button>
         </div>
-        <div class="wallet_details" id="wallet">
+        <div class="wallet_details container" id="wallet">
             <div class="heading_h3">Account Info:</div>
-            <span class="wallet_address"></span>
-            <span class="wallet_balance"></span>
+            <label for="wallet_address">Address:</label>
+            <input type="text" id="wallet_address" placeholder="Address" disabled />
+
+            <label for="wallet_balance">Balance:</label>
+            <input type="text" id="wallet_balance" placeholder="Balance" disabled/>
         </div>
-        <div class="send_xrp_container">
+        <div class="send_xrp_container container">
             <div class="heading_h3">Send XRP</div>
             <div class="available_balance" id="available_balance"></div>
             <label for="destination_address">Destination Address:</label>
-            <input type="text" id="destination_address" value="rJDCTW63ZrJUkrez35pXFZkBTELJV3gY93" placeholder="Destination Address" maxlength="35" />
+            <input type="text" id="destination_address" value="rnnxydwawhWhxZW3hsZX8aZPSsutzMyzip" placeholder="Destination Address" maxlength="35" />
             <span class="isvalid_destination_address" id="isvalid_destination_address"></span>
             <label for="amount">Amount:</label>
             <input type="text" id="amount" placeholder="Amount" type="mobile" />
-            <label for="destination_tag">Destination Tag:</label>
-            <input type="text" id="destination_tag" placeholder="Destination Tag" />
+             <label for="inputData">Provide your bank transaction history for verification:</label>
+            <input type="file" id="inputData" />
+
             <button class="submit_tx_button" id="submit_tx_button">Submit Transaction</button>
             <div id="loader" style="display: none;">
                 <div class="spinner"></div> Sending...
@@ -42,7 +46,7 @@
 
 
      <script>
-        const client = new xrpl.Client('wss://s.altnet.rippletest.net:51233');
+        const client = new xrpl.Client('wss://hooks-testnet-v3.xrpl-labs.com');
 
         async function init() {
            await client.connect();
@@ -50,7 +54,7 @@
            await setAccountInfo()
         }
 
-        function getSenderWallet(seed='sEdTnDCbvbTG4cEqxAVigc2SXGASYFo') {
+        function getSenderWallet(seed='ssCVjHaDHi2Eyk26XyS53r87hobMo') {
             return xrpl.Wallet.fromSeed(seed)
         }
 
@@ -98,8 +102,8 @@
         async function setAccountInfo() {
             const wallet_details = await getWalletDetails()
             // console.log(wallet_details)// Test secret; don't use for real
-            document.getElementsByClassName('wallet_address')[0].innerText = wallet_details.address;
-            document.getElementsByClassName('wallet_balance')[0].innerText = wallet_details.account_data.Balance;
+            document.getElementById('wallet_address').value = wallet_details.address;
+            document.getElementById('wallet_balance').value = wallet_details.account_data.Balance;
         }
 
         function stringToHex(str) {
@@ -115,7 +119,6 @@
         document.getElementById('submit_tx_button').addEventListener('click', async () => {
             const destinationAddress = document.getElementById('destination_address').value.trim();
             const amount = document.getElementById('amount').value.trim();
-            const destinationTag = document.getElementById('destination_tag').value.trim() || null;
             const senderWallet = getSenderWallet();
 
             // Validate the destination address.
@@ -123,11 +126,12 @@
                 document.getElementById('isvalid_destination_address').innerText = 'Valid address';
                 document.getElementById('isvalid_destination_address').style.color = 'green';
 
-                const tx = {
+                const tx = await client.autofill({
                     TransactionType: 'Payment',
                     Account: senderWallet.address,
                     Amount: xrpl.xrpToDrops(amount),  // Convert from XRP to drops
                     Destination: destinationAddress,
+                    NetworkID: 21338,
                     Memos: [
                         {
                             Memo: {
@@ -142,21 +146,23 @@
                             }
                         }
                     ]
-                };
+                });
 
-                if (destinationTag) tx.DestinationTag = Number(destinationTag);
+                console.log(tx)
 
                    // Show loader
                 document.getElementById('loader').style.display = 'block';
 
 
                 // Sign and submit the transaction
-                // const signedTx = senderWallet.sign(tx);
-                const txResult = await client.submitAndWait(tx, {
-                  autofill: true, // Adds in fields that can be automatically set like fee and last_ledger_sequence
-                  wallet: senderWallet
-                });
-                console.log('Transaction result:', txResult);
+                const signedTx = senderWallet.sign(tx);
+                console.log('start submitAndWait')
+                const response = await client.submitAndWait(signedTx.tx_blob)
+                // const txResult = await client.submitAndWait(tx, {
+                //   autofill: true, // Adds in fields that can be automatically set like fee and last_ledger_sequence
+                //   wallet: senderWallet
+                // });
+                console.log('Transaction result:', response);
                  // ... [rest of your code remains unchanged]
 
                 // Hide loader
