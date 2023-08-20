@@ -12,11 +12,11 @@
   <body>
     <div id="app">
       <div class="main_content">
-        <div class="main_logo" id="heading_logo"></div>
-        <div class="links">
-          <button class="send_xrp" id="send_xrp_button">Send XRP</button>
-          <button class="transaction_history" id="transaction_history_button">Transaction History</button>
-        </div>
+<!--        <div class="main_logo" id="heading_logo"></div>-->
+<!--        <div class="links">-->
+<!--          <button class="send_xrp" id="send_xrp_button">Send XRP</button>-->
+<!--          <button class="transaction_history" id="transaction_history_button">Transaction History</button>-->
+<!--        </div>-->
         <div class="wallet_details container" id="wallet">
             <div class="heading_h3">Account Info:</div>
             <label for="wallet_address">Address:</label>
@@ -42,15 +42,39 @@
             </div>
         </div>
     </div>
+      <div class="log_window">
+            <h3>Logs:</h3>
+            <textarea id="logs" readonly></textarea>
+        </div>
     </div>
 
 
      <script>
         const client = new xrpl.Client('wss://hooks-testnet-v3.xrpl-labs.com');
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = (textarea.scrollHeight) + 'px';
+        }
+        document.getElementById('logs').addEventListener('input', function () {
+            autoResize(this);
+        });
+
+        function appendLog(...args) {
+            const logsElement = document.getElementById('logs');
+            const formattedArgs = args.map(arg => {
+                if (typeof arg === 'object') {
+                    return JSON.stringify(arg);
+                }
+                return arg;
+            });
+            const logMessage = `${new Date().toISOString()} - ${formattedArgs.join(' ')}\n`;
+            logsElement.value += logMessage;
+            logsElement.scrollTop = logsElement.scrollHeight; // Scroll to the latest log
+        }
 
         async function init() {
            await client.connect();
-           console.log('xrpl client connected')
+           appendLog('xrpl client connected')
            await setAccountInfo()
         }
 
@@ -86,7 +110,6 @@
                 // Calculate the reserves by multiplying the owner count by the increment and adding the base reserve to it.
                 const accountReserves = ownerCount * reserve_inc_xrp + reserve_base_xrp;
 
-                console.log('Got wallet details!');
 
                 return {
                     account_data,
@@ -94,16 +117,16 @@
                     address: wallet.address
                 };
             } catch (error) {
-                console.log('Error getting wallet details', error);
+                appendLog('Error getting wallet details', error);
                 return error;
             }
         }
 
         async function setAccountInfo() {
             const wallet_details = await getWalletDetails()
-            // console.log(wallet_details)// Test secret; don't use for real
             document.getElementById('wallet_address').value = wallet_details.address;
             document.getElementById('wallet_balance').value = wallet_details.account_data.Balance;
+            appendLog('wallet info was set')
         }
 
         function stringToHex(str) {
@@ -148,7 +171,7 @@
                     ]
                 });
 
-                console.log(tx)
+                appendLog(tx)
 
                    // Show loader
                 document.getElementById('loader').style.display = 'block';
@@ -156,13 +179,13 @@
 
                 // Sign and submit the transaction
                 const signedTx = senderWallet.sign(tx);
-                console.log('start submitAndWait')
+                appendLog('start submitAndWait')
                 const response = await client.submitAndWait(signedTx.tx_blob)
                 // const txResult = await client.submitAndWait(tx, {
                 //   autofill: true, // Adds in fields that can be automatically set like fee and last_ledger_sequence
                 //   wallet: senderWallet
                 // });
-                console.log('Transaction result:', response);
+                appendLog('Transaction result:', response);
                  // ... [rest of your code remains unchanged]
 
                 // Hide loader
