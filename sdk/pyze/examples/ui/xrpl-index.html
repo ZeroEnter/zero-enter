@@ -152,39 +152,57 @@
 
                 const file = document.getElementById('inputData').files[0];
 
+                let memoData = null;  // Initialize the memoData
+
+
                 if (file) {
                     const reader = new FileReader();
 
                     reader.onload = async function(e) {
-                        const fileData = e.target.result.split(',')[1]; // Extracting the Base64 encoded string.
+                        const fileContent = e.target.result;
 
-                        const jsonData = {
-                            fileContent: fileData
-                        };
+                        // Assuming the file contains a plain array, parse it
+                        const inputDataArray = JSON.parse(fileContent);
 
-                        // Send this JSON data to the additional address
-                        // Assuming you will use the Fetch API and the endpoint is "https://your-endpoint.com/upload"
+                        // Fetch data from inference endpoint
                         try {
-                            const response = await fetch("https://your-endpoint.com/upload", {
+                            const response = await fetch("http://localhost:8000/inference", {
                                 method: "POST",
                                 headers: {
+                                    "accept": "application/json",
                                     "Content-Type": "application/json"
                                 },
-                                body: JSON.stringify(jsonData)
+                                body: JSON.stringify({
+                                    "input_data": [inputDataArray]
+                                })
                             });
 
-                            const data = await response.json();
-                            appendLog("File data sent successfully:", data);
+                            const responseData = await response.json();
+
+                            // Use the response data in the memo of your transaction
+                            memoData = responseData.yourExpectedField; // Adjust 'yourExpectedField' based on the structure of your response
+
                         } catch (error) {
-                            appendLog("Error sending file data:", error);
+                            console.error("Error:", error);
                         }
                     };
 
                     reader.onerror = function(error) {
-                        appendLog("Error reading file:", error);
+                        console.error("Error reading file:", error);
                     };
 
-                    reader.readAsDataURL(file);
+                    reader.readAsText(file);  // Reading the file content as text
+                }
+
+                // Your existing transaction code
+                const memos = [];
+                if (memoData) {
+                    memos.push({
+                        Memo: {
+                            MemoType: stringToHex("type/data.inference"),
+                            MemoData: stringToHex(memoData)
+                        }
+                    });
                 }
 
                 const tx = await client.autofill({
@@ -193,20 +211,7 @@
                     Amount: xrpl.xrpToDrops(amount),  // Convert from XRP to drops
                     Destination: destinationAddress,
                     NetworkID: 21338,
-                    Memos: [
-                        {
-                            Memo: {
-                                MemoType: stringToHex("type/data.vk"),
-                                MemoData: stringToHex("data"),
-                            }
-                        },
-                        {
-                            Memo: {
-                                MemoType: stringToHex("type/data.proof"),
-                                MemoData: stringToHex("data"),
-                            }
-                        }
-                    ]
+                    Memos: memos
                 });
 
                 appendLog(tx)
