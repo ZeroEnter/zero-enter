@@ -5,7 +5,7 @@ ZeroEnter offers a groundbreaking solution, seamlessly merging local machine lea
 ---
 
 <video width="600" height="400" controls>
-  <source src="docs/demo.mp4" type="video/mp4">
+  <source src="https://github.com/ZeroEnter/zero-enter/raw/main/docs/demo.mp4" type="video/mp4">
   Your browser does not support the video tag.
 </video>
 
