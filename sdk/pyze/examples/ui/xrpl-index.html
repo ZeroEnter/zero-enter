@@ -10,6 +10,7 @@
     <script src="node_modules/@transia/xrpl/build/xrpl-latest-min.js"></script>
   </head>
   <body>
+    <div id="loadingBar"></div>
     <div id="app">
       <div class="main_content">
 <!--        <div class="main_logo" id="heading_logo"></div>-->
@@ -70,6 +71,7 @@
             });
             const logMessage = `${new Date().toISOString()} - ${formattedArgs.join(' ')}\n`;
             logsElement.value += logMessage;
+             logsElement.value += '--------------------------------------------------------------------------------------------\n';
             logsElement.scrollTop = logsElement.scrollHeight; // Scroll to the latest log
         }
 
@@ -147,7 +149,7 @@
 
             // Validate the destination address.
             if (xrpl.isValidAddress(destinationAddress)) {
-                document.getElementById('isvalid_destination_address').innerText = 'Valid address';
+                // document.getElementById('isvalid_destination_address').innerText = 'Valid address';
                 document.getElementById('isvalid_destination_address').style.color = 'green';
 
                 const file = document.getElementById('inputData').files[0];
@@ -217,7 +219,7 @@
                 appendLog(tx)
 
                    // Show loader
-                document.getElementById('loader').style.display = 'block';
+                document.getElementById('loadingBar').classList.add('loading');
 
 
                 // Sign and submit the transaction
@@ -232,7 +234,7 @@
                  // ... [rest of your code remains unchanged]
 
                 // Hide loader
-                document.getElementById('loader').style.display = 'none';
+                document.getElementById('loadingBar').classList.remove('loading');
             } else {
                 document.getElementById('isvalid_destination_address').innerText = 'Invalid address';
                 document.getElementById('isvalid_destination_address').style.color = 'red';

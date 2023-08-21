@@ -195,3 +195,31 @@ button:hover {
   overflow-wrap: break-word; /* Ensures long text wraps */
 }
 
+@keyframes loadingAnimation {
+  0% {
+    left: -100%;
+    width: 30%; /* Start with a small width to simulate initial fast progress */
+  }
+  50% {
+    left: 50%;
+    width: 30%;
+  }
+  100% {
+    left: 100%;
+    width: 0; /* End with zero width */
+  }
+}
+#loadingBar {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    height: 3px;
+    width: 100%;
+    background-color: #3498db;
+    z-index: 10000;
+}
+
+/* This class will be added to the loadingBar when loading starts */
+.loading {
+    animation: loadingAnimation 1.5s infinite; /* Adjust duration as necessary */
+}
