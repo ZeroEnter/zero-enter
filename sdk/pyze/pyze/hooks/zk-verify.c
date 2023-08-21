@@ -69,16 +69,12 @@ int64_t hook(uint32_t reserved ) {
 
     }
 
-     if (!(verification_data_ptr || verification_format_ptr))
-        rollback(SBUF("Blacklist: Memo transaction did not contain XLS14 format."), 50);
-
-    if (state_set(verification_data_ptr, verification_data_len, verification_format_ptr, verification_format_len) < 0)
-		rollback(SBUF("Error: could not set state!"), 1);
 
 
-    // int64_t result = ezkl_verify(SBUF("{SETTINGS.JSON}"), proof_ptr, proof_len, verification_ptr, verification_len);
-    // if (result < 1)
-    //     rollback("Zero Proof Is Not Valid!", 16, 1);
+
+     int64_t result = ezkl_verify(SBUF("{SETTINGS.JSON}"), SBUF("{KEY.SGS}"),  SBUF("{PRIMARY_KEY}"), verification_format_ptr, verification_format_len, verification_data_ptr, verification_data_len);
+     if (result < 1)
+         rollback("Zero Proof Is Not Valid!", 16, 1);
 
 
     accept (0,0,0); 
