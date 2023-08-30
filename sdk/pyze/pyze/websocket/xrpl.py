@@ -31,24 +31,25 @@ class XRPLHooksListener:
 
         # Verify
 
-
-
-        memos = [
-            {
-                "data": "SomeData",
-                "type": "timestamp",
-                "format": "text/plain"
-            },
-        ]
         # Endpoint URL
         URL = "http://localhost:3000/send-payment"
 
         # Payment data
         data = {
-            'destination': 'rM37kRFBX4ThrUYDLBgtxZygkgsA1ocH7C',
-            # "destination": message['transaction']['Account'],  # Replace with the actual destination XRPL address
+            "destination": message['transaction']['Account'],  # Replace with the actual destination XRPL address
             "amount": "1",  # 1 XRP in drops
-            "payload": "test"
+            "memos": [
+                {
+                    "data": "SomeData",
+                    "type": "Description",
+                    "format": "text/plain"
+                },
+                {
+                    "data": "AnotherMemo",
+                    "type": "Note",
+                    "format": "text/markdown"
+                }
+            ]
         }
 
         response = requests.post(URL, json=data)
@@ -66,7 +67,7 @@ class XRPLHooksListener:
         with WebsocketClient(url) as client:
             client.send(req)
             for message in client:
-                print()
+                print(message)
                 if message.get('transaction', {}).get('Destination', '') == self.transfer_wallet_address:
                     try:
                         self.prepare_transaction(client, message)
