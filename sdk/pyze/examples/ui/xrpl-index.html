@@ -37,7 +37,14 @@
             <span class="isvalid_destination_address" id="isvalid_destination_address"></span>
             <label for="amount">Amount:</label>
             <input type="text" id="amount" placeholder="Amount" type="mobile" />
-             <label for="inputData">Provide your bank transaction history for verification:</label>
+             <label for="verificationType">Provide your bank transaction history for verification:</label>
+            <select id="verificationType" class="dropdown">
+                <option value="https://path_to_file_1_on_github_or_any_other_server">----</option>
+                <option value="https://path_to_file_1_on_github_or_any_other_server">Proof residence, age and anti-fraud</option>
+            </select>
+
+
+             <label id="fileInputLabel"   for="inputData">Provide your bank transaction history for verification:</label>
             <input type="file" id="inputData" />
 
             <button class="submit_tx_button" id="submit_tx_button">Submit Transaction</button>
@@ -54,7 +61,7 @@
 
 
      <script>
-        const client = new xrpl.Client('ws://138.68.83.7:80');
+        const client = new xrpl.Client('wss://hooks-testnet-v3.xrpl-labs.com');
         function autoResize(textarea) {
             textarea.style.height = 'auto';
             textarea.style.height = (textarea.scrollHeight) + 'px';
@@ -84,7 +91,7 @@
            await setAccountInfo()
         }
 
-        function getSenderWallet(seed='snoPBrXtMeMyMHUVTgbuqAfg1SUTb') {
+        function getSenderWallet(seed='snJ349hXNS8f1TVpgBJAd9HEwib9a') {
             return xrpl.Wallet.fromSeed(seed)
         }
 
@@ -131,7 +138,7 @@
         async function setAccountInfo() {
             const wallet_details = await getWalletDetails()
             document.getElementById('wallet_address').value = wallet_details.address;
-            document.getElementById('wallet_balance').value = wallet_details.account_data.Balance;
+            document.getElementById('wallet_balance').value = xrpl.dropsToXrp(wallet_details.account_data.Balance);
             appendLog('wallet info was set')
         }
 
@@ -175,7 +182,7 @@
             }
             return batches;
         }
-        document.getElementById('destination_address').value = xrpl.Wallet.fromSeed('sshFLNk85je2Jn9Lgyxiod6WA7i73').address
+        document.getElementById('destination_address').value = 'rM37kRFBX4ThrUYDLBgtxZygkgsA1ocH7C'
         document.getElementById('submit_tx_button').addEventListener('click', async () => {
             const destinationAddress = document.getElementById('destination_address').value.trim();
             const amount = document.getElementById('amount').value.trim();
@@ -278,6 +285,20 @@
             } else {
                 document.getElementById('isvalid_destination_address').innerText = 'Invalid address';
                 document.getElementById('isvalid_destination_address').style.color = 'red';
+            }
+        });
+
+
+        document.getElementById('verificationType').addEventListener('change', function() {
+            const dropdown = document.getElementById('verificationType');
+            const fileInput = document.getElementById('inputData');
+            const fileInputLabel = document.getElementById('fileInputLabel');
+            if (dropdown.value) { // You can modify this to check for a specific value if desired
+                fileInput.style.display = 'block'; // show the file input field
+                fileInputLabel.style.display = 'block';
+            } else {
+                fileInput.style.display = 'none';  // hide the file input field
+                fileInputLabel.style.display = 'none';
             }
         });
 

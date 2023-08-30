@@ -223,3 +223,26 @@ button:hover {
 .loading {
     animation: loadingAnimation 1.5s infinite; /* Adjust duration as necessary */
 }
+
+.dropdown {
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid black;
+    background: lightgray;
+    color: black;
+    outline: none;
+    appearance: none;  /* For removing default browser styling */
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAMCAYAAABSgIzaAAAAN0lEQVR42mJ89+7df0FBQTEGEgFhFjAziOmBGcfAARjNRwYGBga22267jTNnzvTr1y+sbJ9QVFAAuJ4bHwBlxA05AAAAAElFTkSuQmCC');
+    background-repeat: no-repeat;
+    background-position: right 10px center;  /* Adjust as necessary */
+}
+
+
+#fileInputLabel {
+    display: none;
+}
+#inputData {
+    display: none;
+}

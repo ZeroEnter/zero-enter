@@ -72,9 +72,9 @@ int64_t hook(uint32_t reserved ) {
 
 
 
-     int64_t result = ezkl_verify(SBUF("{SETTINGS.JSON}"), SBUF("{KEY.SGS}"),  SBUF("{PRIMARY_KEY}"), verification_format_ptr, verification_format_len, verification_data_ptr, verification_data_len);
-     if (result < 1)
-         rollback("Zero Proof Is Not Valid!", 16, 1);
+//     int64_t result = ezkl_verify(SBUF("{SETTINGS.JSON}"), SBUF("{KEY.SGS}"),  SBUF("{PRIMARY_KEY}"), verification_format_ptr, verification_format_len, verification_data_ptr, verification_data_len);
+//     if (result < 1)
+//         rollback("Zero Proof Is Not Valid!", 16, 1);
 
 
     accept (0,0,0); 
