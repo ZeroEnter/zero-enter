@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "@transia/xrpl": "^2.7.3-alpha.9"
+    "@transia/xrpl": "^2.7.3-alpha.9",
+    "web3.storage": "^4.5.5"
   }
 }

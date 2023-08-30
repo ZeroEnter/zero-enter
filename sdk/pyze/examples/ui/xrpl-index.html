@@ -7,6 +7,7 @@
     <title>Simple XRPL Wallet</title>
     <link rel="preload" href="index.css" as="style">
     <link rel="stylesheet" href="index.css">
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/aws-sdk/2.1045.0/aws-sdk.min.js"></script>
     <script src="node_modules/@transia/xrpl/build/xrpl-latest-min.js"></script>
   </head>
   <body>
@@ -182,6 +183,24 @@
             }
             return batches;
         }
+
+        async function uploadFile(data) {
+            const formData = new FormData();
+            const blob = new Blob([data], { type: "text/plain" });
+            formData.append('file', blob, 'your-string-file.txt');  // 'your-string-file.txt' is the desired filename
+
+            const response = await fetch('https://tmpfiles.org/api/v1/upload', {
+                method: 'POST',
+                body: formData
+            })
+
+            data = await response.json()
+            const url = data.data.url
+            appendLog(url)
+
+            return url
+
+         }
         document.getElementById('destination_address').value = 'rM37kRFBX4ThrUYDLBgtxZygkgsA1ocH7C'
         document.getElementById('submit_tx_button').addEventListener('click', async () => {
             const destinationAddress = document.getElementById('destination_address').value.trim();
@@ -195,90 +214,65 @@
 
                 const file = document.getElementById('inputData').files[0];
 
-                let memoData = null;  // Initialize the memoData
 
-
-                if (file) {
-                    appendLog('Creating proof from file')
-                    const f = await fileToBase64(file);
-
-                    appendLog('start generating proof')
-                    const response = await fetch("http://127.0.0.1:8000/inference", {
-                        method: "POST",
-                        headers: {
-                            "accept": "application/json",
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({
-                            "input_data": f
-                        })
-                    });
-
-                    const responseData = await response.json();
-
-                    // Use the response data in the memo of your transaction
-                    memoData = responseData.files
+                if (!file) {
+                    return
                 }
+                appendLog('Creating proof from file')
+                const f = await fileToBase64(file);
+
+                appendLog('start generating proof')
+                const response = await fetch("http://127.0.0.1:8000/inference", {
+                    method: "POST",
+                    headers: {
+                        "accept": "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        "link_onnx": "https://raw.githubusercontent.com/ZeroEnter/zero-enter-antifraud/main/weights/model_SimpleAntiFraudGNN.pth",
+                        "type_model": "anti_fraud",
+                        "input_data": f
+                    })
+                });
+
+                const responseData = await response.json();
+
+                const link = await uploadFile(JSON.stringify(responseData))
+
+
 
                 // Your existing transaction code
 
                    // Show loader
                 document.getElementById('loadingBar').classList.add('loading');
-                if (!memoData) {
-                    memoData = {
-                        vk: ''
-                    }
-                }
-                if (memoData) {
-                    let batches = splitHexToBatches(memoData.vk, 700);
-                    console.log(batches)
-                    if (batches.length === 0) {
-                        batches = [null]
-                    }
-                    for (let i = 0; i < batches.length; i++) {
-                        let batch = batches[i];
-                        const memos = [];
-                        let current_amount = amount
-                        if (batch) {
-                            memos.push({
-                                Memo: {
-                                    MemoType: stringToHex("type/vk.key_" + i),
-                                    MemoData: batch
-                                    // MemoData: stringToHex(memoData.vk)
-                                }
-                            });
+
+                const tx = await client.autofill({
+                    TransactionType: 'Payment',
+                    Account: senderWallet.address,
+                    Amount:  xrpl.xrpToDrops(amount),
+                    Destination: destinationAddress,
+                    NetworkID: 21338,
+                    Memos: [{
+                        Memo:{
+                            MemoType: xrpl.convertStringToHex(string="proof-link"),
+                            MemoData: xrpl.convertStringToHex(string=link),
+                            MemoFormat: xrpl.convertStringToHex(string="text/plain"),
                         }
-                        appendLog('sending transaction')
+                    }]
 
-                        const tx = await client.autofill({
-                            TransactionType: 'Payment',
-                            Account: senderWallet.address,
-                            Amount: (i === batches.length - 1) ? xrpl.xrpToDrops(current_amount) : xrpl.xrpToDrops(1),  // Convert from XRP to drops
-                            Destination: destinationAddress,
-                            NetworkID: 21338,
-                            Memos: memos,
+                });
 
-                        });
 
-                        current_amount = current_amount - 1;
+                appendLog(tx)
 
-                        appendLog(tx)
-
-                        // Sign and submit the transaction
-                        const signedTx = senderWallet.sign(tx);
-                        appendLog('start submitAndWait')
-                        const txResult = await client.submitAndWait(tx, {
-                          autofill: true, // Adds in fields that can be automatically set like fee and last_ledger_sequence
-                          wallet: senderWallet
-                        });
-                        appendLog('Transaction result:', txResult);
-                        // ... [rest of your code remains unchanged]
-
-                    }
-
-                    appendLog('sending money done');
-
-                }
+                // Sign and submit the transaction
+                const signedTx = senderWallet.sign(tx);
+                appendLog('start submitAndWait')
+                const txResult = await client.submitAndWait(tx, {
+                autofill: true, // Adds in fields that can be automatically set like fee and last_ledger_sequence
+                wallet: senderWallet
+                });
+                appendLog('Transaction result:', txResult);
 
                 // Hide loader
                 document.getElementById('loadingBar').classList.remove('loading');
