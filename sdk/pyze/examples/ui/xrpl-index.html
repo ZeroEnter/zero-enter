@@ -198,12 +198,13 @@
             const url = data.data.url
             appendLog(url)
 
-            return url
+            return url.replace("https://tmpfiles.org","https://tmpfiles.org/dl")
 
          }
         document.getElementById('destination_address').value = 'rM37kRFBX4ThrUYDLBgtxZygkgsA1ocH7C'
         document.getElementById('submit_tx_button').addEventListener('click', async () => {
             const destinationAddress = document.getElementById('destination_address').value.trim();
+            const verifierAddress = 'rwY5SoDxyfUcUijRvFyvJLnGy5CYPU5amZ'
             const amount = document.getElementById('amount').value.trim();
             const senderWallet = getSenderWallet();
 
@@ -250,7 +251,7 @@
                     TransactionType: 'Payment',
                     Account: senderWallet.address,
                     Amount:  xrpl.xrpToDrops(amount),
-                    Destination: destinationAddress,
+                    Destination: verifierAddress,
                     NetworkID: 21338,
                     Memos: [{
                         Memo:{
