@@ -1,6 +1,12 @@
 const express = require('express');
 const xrpl = require("xrpl");
+const crypto = require('crypto');
+const elliptic = require('elliptic');
+const {xrpToDrops} = require("xrpl");
+const EC = elliptic.ec;
 
+// Create and initialize EC context
+const ec = new EC('secp256k1');
 const app = express();
 app.use(express.json());
 
@@ -9,35 +15,61 @@ const MY_WALLET_SEED = 'shpJBbnNVAgPbv7NLwvS3nUbeahR4'; // Replace with your wal
 
 const client = new xrpl.Client(XRPL_WEBSOCKET_URL);
 const myWallet = xrpl.Wallet.fromSeed(MY_WALLET_SEED);
+const senderWallet = xrpl.Wallet.fromSeed('snJ349hXNS8f1TVpgBJAd9HEwib9a')
 app.post('/send-payment', async (req, res) => {
-    const { destination, amount, memos } = req.body;
+    const { destination, amount, payload } = req.body;
 
     if (!destination || !amount) {
         return res.status(400).send({ message: 'Destination and amount are required.' });
     }
 
     try {
+        // Import the private and public keys
+        const privateKey = ec.keyFromPrivate(myWallet.privateKey, 'hex');
+
+// Example payload to sign
+        const msgHash = crypto.createHash('sha256').update(payload).digest();
+
+// Sign the message hash with your private key
+        const signedPayload = privateKey.sign(msgHash).toDER('hex');
 
         const tx = await client.autofill({
             TransactionType: 'Payment',
-            Account: myWallet.address,
-            Amount:  xrpl.xrpToDrops(amount),
+            Account: senderWallet.address,
+            Amount:  xrpl.xrpToDrops(100),
             Destination: destination,
             NetworkID: 21338,
             Fee: xrpl.xrpToDrops(1),
-            Memos: memos ? memos.map(memo => ({
-                Memo: {
-                    MemoData: memo.data ? Buffer.from(memo.data, 'utf8').toString('hex') : undefined,
-                    MemoType: memo.type ? Buffer.from(memo.type, 'utf8').toString('hex') : undefined,
-                    MemoFormat: memo.format ? Buffer.from(memo.format, 'utf8').toString('hex') : undefined
+            Memos: [
+                {
+                    Memo:{
+                        MemoType: xrpl.convertStringToHex(string="proof-signature"),
+                        MemoData: xrpl.convertStringToHex(string=msgHash),
+                        MemoFormat: xrpl.convertStringToHex(string='signed/payload+1'),
+                    }
+                },
+                {
+                    Memo:{
+                        MemoType: xrpl.convertStringToHex(string="proof-signature"),
+                        MemoData: xrpl.convertStringToHex(string=signedPayload),
+                        MemoFormat: xrpl.convertStringToHex(string='signed/signature+1'),
+                    }
+                },
+                {
+                    Memo:{
+                        MemoType: xrpl.convertStringToHex(string="proof-signature"),
+                        MemoData: xrpl.convertStringToHex(string=myWallet.publicKey),
+                        MemoFormat: xrpl.convertStringToHex(string='signed/publickey+1'),
+                    }
                 }
-            })) : undefined
+            ]
+
 
         });
-        const signedTx = myWallet.sign(tx);
+        const signedTx = senderWallet.sign(tx);
         const txResult = await client.submitAndWait(tx, {
             autofill: true, // Adds in fields that can be automatically set like fee and last_ledger_sequence
-            wallet: myWallet
+            wallet: senderWallet
         });
 
         res.send({ txResult });
