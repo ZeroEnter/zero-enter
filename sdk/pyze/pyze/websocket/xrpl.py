@@ -37,20 +37,29 @@ class XRPLHooksListener:
         data = json.loads(response.content)
 
         # Verify
-        for field, input_data in data.items():
-            base64_bytes = input_data.encode("utf-8")
-            decoded_bytes = base64.b64decode(base64_bytes)
-            # decoded_string = decoded_bytes.decode("utf-8")
-            with open(os.path.join(ZKP_DIR, field), "wb") as f:
-                f.write(decoded_bytes)
 
-        # return {"result": bool}
-        result = ezkl.verify(
-            proof_path=os.path.join(ZKP_DIR, "test.pf"),
-            settings_path=os.path.join(ZKP_DIR, "settings.json"),
-            vk_path=os.path.join(ZKP_DIR, "test.vk"),
-            srs_path=os.path.join(ZKP_DIR, "kzg.srs"),
-        )
+        result = []
+        inputs_ = data.get("output")
+        for input_data in inputs_:
+            for field, file_item in input_data.items():
+                base64_bytes = file_item.encode("utf-8")
+                decoded_bytes = base64.b64decode(base64_bytes)
+                # decoded_string = decoded_bytes.decode("utf-8")
+                with open(os.path.join(ZKP_DIR, field), "wb") as f:
+                    f.write(decoded_bytes)
+
+            proof_path = os.path.join(ZKP_DIR, "test.pf")
+            settings_path = os.path.join(ZKP_DIR, "settings.json")
+            vk_path = os.path.join(ZKP_DIR, "test.vk")
+            srs_path = os.path.join(ZKP_DIR, "kzg.srs")
+
+            res = ezkl.verify(
+                proof_path,
+                settings_path,
+                vk_path,
+                srs_path,
+            )
+            result.append(res)
 
         # Endpoint URL
         URL = "http://localhost:3000/send-payment"
