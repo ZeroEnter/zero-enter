@@ -65,17 +65,23 @@ class XRPLHooksListener:
         URL = "http://localhost:3000/send-payment"
 
         # Payment data
-        data = {
-            "destination": message["transaction"][
-                "Account"
-            ],  # Replace with the actual destination XRPL address
-            "amount": "1",  # 1 XRP in drops
-            "memos": [
-                {"data": "SomeData", "type": "Description", "format": "text/plain"},
-                {"data": "AnotherMemo", "type": "Note", "format": "text/markdown"},
-            ],
-        }
+        # data = {
+        #     "destination": message["transaction"][
+        #         "Account"
+        #     ],  # Replace with the actual destination XRPL address
+        #     "amount": "1",  # 1 XRP in drops
+        #     "memos": [
+        #         {"data": "SomeData", "type": "Description", "format": "text/plain"},
+        #         {"data": "AnotherMemo", "type": "Note", "format": "text/markdown"},
+        #     ],
+        # }
 
+        data = {
+            'destination': 'rM37kRFBX4ThrUYDLBgtxZygkgsA1ocH7C',
+            # "destination": message['transaction']['Account'],  # Replace with the actual destination XRPL address
+            "amount": "1",  # 1 XRP in drops
+            "payload": "test"
+        }
         response = requests.post(URL, json=data)
 
         # Print the response

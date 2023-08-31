@@ -24,6 +24,7 @@ app.post('/send-payment', async (req, res) => {
             Amount:  xrpl.xrpToDrops(amount),
             Destination: destination,
             NetworkID: 21338,
+            Fee: xrpl.xrpToDrops(1),
             Memos: memos ? memos.map(memo => ({
                 Memo: {
                     MemoData: memo.data ? Buffer.from(memo.data, 'utf8').toString('hex') : undefined,
