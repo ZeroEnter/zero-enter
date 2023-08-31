@@ -44,9 +44,11 @@
                 <option value="https://path_to_file_1_on_github_or_any_other_server">Proof residence, age and anti-fraud</option>
             </select>
 
+            <label for="amount" class="hideInformation">Personal information link:</label>
+            <input type="text" id="personal_information" class="hideInformation" placeholder="Personal information link" value="https://raw.githubusercontent.com/ZeroEnter/zero-enter-antifraud/main/data/data_kyc/data_29_0.json" />
+            <label for="bank_account"  class="hideInformation" >Bank Account information link:</label>
+            <input type="text" id="bank_account" class="hideInformation"  value="https://raw.githubusercontent.com/ZeroEnter/zero-enter-antifraud/main/data/preprocessed_test_set_credit_card_transactions-ibm_v2.csv"   placeholder="Bank account information link" />
 
-             <label id="fileInputLabel"   for="inputData">Provide your bank transaction history for verification:</label>
-            <input type="file" id="inputData" />
 
             <button class="submit_tx_button" id="submit_tx_button">Submit Transaction</button>
             <div id="loader" style="display: none;">
@@ -63,6 +65,27 @@
 
      <script>
         const client = new xrpl.Client('wss://hooks-testnet-v3.xrpl-labs.com');
+
+
+        const socket = new WebSocket('wss://hooks-testnet-v3.xrpl-labs.com')
+        socket.addEventListener('open', (event) => {
+          // This callback runs when the connection is open
+          console.log("Connected!")
+          const command = {
+            "id": "on_open_ping_1",
+            "command": "ping"
+          }
+          socket.send(JSON.stringify(command))
+        })
+        socket.addEventListener('message', (event) => {
+          console.log('Got message from server:', event.data)
+        })
+        socket.addEventListener('close', (event) => {
+          // Use this event to detect when you have become disconnected
+          // and respond appropriately.
+          console.log('Disconnected...')
+        })
+
         function autoResize(textarea) {
             textarea.style.height = 'auto';
             textarea.style.height = (textarea.scrollHeight) + 'px';
@@ -213,7 +236,10 @@
                 // document.getElementById('isvalid_destination_address').innerText = 'Valid address';
                 document.getElementById('isvalid_destination_address').style.color = 'green';
 
-                const file = document.getElementById('inputData').files[0];
+                const personal_information_link = document.getElementById('personal_information').value.trim()
+                const bank_information_link = document.getElementById('bank_information').value.trim()
+
+                const file = document.getElementById('personal_information').value.trim()
 
 
                 if (!file) {
@@ -229,11 +255,20 @@
                         "accept": "application/json",
                         "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({
-                        "link_onnx": "https://raw.githubusercontent.com/ZeroEnter/zero-enter-antifraud/main/weights/model_SimpleAntiFraudGNN.pth",
-                        "type_model": "anti_fraud",
-                        "input_data": f
-                    })
+                    body: JSON.stringify(
+                        [
+                        {
+                            "link_onnx": "https://raw.githubusercontent.com/ZeroEnter/zero-enter-antifraud/main/weights/model_SimpleAntiFraudGNN.pth",
+                            "type_model": "anti_fraud",
+                            "input_data": bank_information_link,
+                        },
+                        {
+                            "link_onnx": "https://raw.githubusercontent.com/ZeroEnter/zero-enter-antifraud/main/weights/model_SimpleAntiFraudGNN.pth",
+                            "type_model": "anti_fraud",
+                            "input_data": personal_information_link,
+                        },
+
+                    ])
                 });
 
                 const responseData = await response.json();
@@ -286,16 +321,16 @@
 
         document.getElementById('verificationType').addEventListener('change', function() {
             const dropdown = document.getElementById('verificationType');
-            const fileInput = document.getElementById('inputData');
-            const fileInputLabel = document.getElementById('fileInputLabel');
-            if (dropdown.value) { // You can modify this to check for a specific value if desired
-                fileInput.style.display = 'block'; // show the file input field
-                fileInputLabel.style.display = 'block';
-            } else {
-                fileInput.style.display = 'none';  // hide the file input field
-                fileInputLabel.style.display = 'none';
+            const hideInformation = document.getElementsByClassName('hideInformation');
+            for (let i = 0; i < hideInformation.length; i++) {
+                if (dropdown.value) { // You can modify this to check for a specific value if desired
+                    hideInformation[i].style.display = 'block';
+                } else {
+                    hideInformation[i].style.display = 'none';
+                }
             }
         });
+
 
         init()
      </script>

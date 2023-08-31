@@ -240,7 +240,7 @@ button:hover {
 }
 
 
-#fileInputLabel {
+.hideInformation {
     display: none;
 }
 #inputData {
