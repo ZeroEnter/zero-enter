@@ -1,6 +1,6 @@
 # Zero Enter
 
-ZeroEnter offers a groundbreaking solution, seamlessly merging local machine learning execution with blockchain verification. Exclusively tailored for the XRPL blockchain network, it showcases a profound integration with the Rippled hooks source code, ensuring both local data protection and global trust.
+ZeroEnter offers a groundbreaking solution, seamlessly merging local machine learning execution with blockchain verification. Exclusively tailored for the XRPL blockchain network, it showcases a profound integration with the XRPL hooks source code, ensuring both local data protection and global trust.
 
 ---
 
