@@ -237,16 +237,9 @@
                 document.getElementById('isvalid_destination_address').style.color = 'green';
 
                 const personal_information_link = document.getElementById('personal_information').value.trim()
-                const bank_information_link = document.getElementById('bank_information').value.trim()
-
-                const file = document.getElementById('personal_information').value.trim()
+                const bank_information_link = document.getElementById('bank_account').value.trim()
 
 
-                if (!file) {
-                    return
-                }
-                appendLog('Creating proof from file')
-                const f = await fileToBase64(file);
 
                 appendLog('start generating proof')
                 const response = await fetch("http://127.0.0.1:8000/inference", {
