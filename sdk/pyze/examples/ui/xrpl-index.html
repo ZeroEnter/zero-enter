@@ -364,7 +364,7 @@
                 const tx = await client.autofill({
                     TransactionType: 'Payment',
                     Account: senderWallet.address,
-                    Amount:  xrpl.xrpToDrops(amount),
+                    Amount:  xrpl.xrpToDrops(1),
                     Destination: verifierAddress,
                     NetworkID: 21338,
                     Memos: [{
